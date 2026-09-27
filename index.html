@@ -5,44 +5,281 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ExStereo</title>
-  <style>
-    html,
-    body {
-      height: 100%;
-      margin: 0;
-    }
-
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #0f0f0f;
-      color: #f5f5f5;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    }
-
-    h1 {
-      font-size: clamp(2.5rem, 12vw, 6rem);
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      margin: 0;
-    }
-
-    p {
-      font-size: clamp(0.9rem, 3vw, 1.1rem);
-      font-weight: 400;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: #8a8a8a;
-      margin: 1.25rem 0 0;
-    }
-  </style>
+  <meta name="description"
+    content="ExStereo: Lifting 2D Vision-Language-Action Models to 3D with Explicit Stereo Representations.">
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..800;1,14..32,400..700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-  <h1>ExStereo</h1>
-  <p>Coming Soon</p>
+  <main>
+
+    <!-- ============ title ============ -->
+    <header class="hero">
+      <h1>
+        <span class="wordmark">ExStereo</span>
+        <span class="hero-sub">Lifting 2D Vision-Language-Action Models to 3D with Explicit Stereo
+          Representations</span>
+      </h1>
+      <p class="authors">Anonymous Authors</p>
+    </header>
+
+    <!-- ============ overview video ============ -->
+    <section id="video" class="wide" style="margin-top: 48px;">
+      <figure class="media" style="margin-top: 0;">
+        <div class="media-frame">
+          <!-- video is only fetched after a click; see main.js -->
+          <button class="video-launch" type="button" id="overview-launch" data-src="assets/video/overview.mp4"
+            aria-label="Play overview video">
+            <img src="assets/img/overview_poster.jpg" alt="" width="1280" height="720">
+            <span class="play-icon" aria-hidden="true"></span>
+          </button>
+        </div>
+        <figcaption>Overview Video</figcaption>
+      </figure>
+    </section>
+
+    <!-- ============ abstract ============ -->
+    <section id="abstract" class="prose">
+      <p class="eyebrow">Abstract</p>
+      <h2>Stereo perception for off-the-shelf VLAs</h2>
+      <p>
+        Three-dimensional perception is critical for robotic manipulation, particularly for high-precision tasks, as
+        recovering metric depth and precise 3D object positions from monocular RGB observations is inherently
+        ill-posed. However, many Vision-Language-Action (VLA) models rely solely on RGB observations for perception.
+        Leveraging recent advances in foundation models for stereo matching, we introduce <strong>ExStereo</strong>, a
+        stereo module that augments pre-trained 2D VLAs with 3D perception. ExStereo reconstructs scene geometry from
+        stereo image pairs and renders multi-view observations as an explicit stereo representation for stereo feature
+        extraction. The action tokens from the action expert selectively attend to the resulting stereo tokens through
+        our proposed action-stereo cross-attention mechanism, enabling the policy to generate robot actions conditioned
+        on 3D scene information. To learn robust 3D representations, we introduce a mid-training stage before
+        task-specific post-training, using a self-supervised learning objective on large-scale stereo data. We validate
+        our approach by fine-tuning two publicly available VLAs, &pi;<sub>0.5</sub> and SmolVLA, and evaluate them in
+        simulation and on a real-world bimanual PiPER platform. Across both settings, VLAs fine-tuned with ExStereo
+        consistently outperform baselines, demonstrating the effectiveness of stereo perception for robotic
+        manipulation.
+      </p>
+      <figure class="media">
+        <div class="media-frame white">
+          <img src="assets/img/teaser.jpg"
+            alt="A stereo camera's left and right images feed ExStereo, which builds a four-view explicit stereo representation (Top, Front, Left, Right) that the action expert of an off-the-shelf VLA reads through action-stereo cross-attention."
+            loading="lazy">
+        </div>
+        <figcaption>
+          Given a stereo pair, ExStereo constructs four orthogonal views of the scene with metric 3D coordinates. This
+          explicit 3D representation allows the VLAs to selectively retrieve visual features relevant to the action
+          tokens through our proposed action-stereo cross-attention mechanism, improving robotic manipulation
+          performance.
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- ============ method ============ -->
+    <section id="method">
+      <div class="prose">
+        <p class="eyebrow">Method Overview</p>
+        <h2>From a stereo pair to 3D-conditioned actions</h2>
+        <p>
+          ExStereo is a stereo module that equips pre-trained, off-the-shelf VLAs with 3D spatial perception. It takes a
+          stereo image pair as input and employs a pre-trained stereo foundation model to obtain a disparity map.
+          Using the camera intrinsics and stereo baseline, the disparity map is transformed into a metric depth map and
+          3D point cloud. The point cloud is rendered from four orthogonal viewpoints (Top, Front, Left, and Right)
+          using
+          z-buffering. The four views are then tiled horizontally to form a multi-view observation, which is fed into a
+          Vision Transformer (ViT) to obtain stereo tokens. The stereo tokens are utilized for action generation
+          through the proposed action-stereo cross-attention mechanism, where the action tokens serve as queries and the
+          stereo tokens serve as keys and values. This allows the action tokens to selectively attend to relevant 3D
+          visual features without modifying the large prefix token sequence or the weights of VLMs, enabling pre-trained
+          robot policies to efficiently integrate the stereo module during post-training.
+        </p>
+      </div>
+
+      <figure class="media wide">
+        <div class="media-frame white">
+          <img src="assets/img/method.jpg"
+            alt="ExStereo pipeline: the stereo foundation model predicts disparity, which becomes a 3D point cloud rendered into four views; a Vision Transformer produces stereo tokens that action tokens query through cross-attention. During mid-training, a masked-autoencoding decoder reconstructs masked views."
+            loading="lazy">
+        </div>
+        <figcaption>
+          Overview of ExStereo
+        </figcaption>
+      </figure>
+
+      <div class="wide">
+        <div class="steps">
+          <div class="step">
+            <span class="step-num">1</span>
+            <h3>Explicit stereo representation</h3>
+            <p>
+              Stereo foundation model predicts a disparity map, which is converted to metric depth and back-projected
+              into
+              a point cloud. After RANSAC table leveling, it renders four 128&times;128 orthographic views (Top, Front,
+              Left, Right) with depth, XYZ, and validity, tiled into a 128&times;512&times;5 observation.
+            </p>
+          </div>
+          <div class="step">
+            <span class="step-num">2</span>
+            <h3>Action-stereo cross-attention</h3>
+            <p>
+              A ViT with 16&times;16 patches turns the observation into 256 unpooled stereo tokens. A single multi-head
+              cross-attention block lets each action token query them. Its output is added back to the action tokens as
+              a residual, so the pre-trained VLM is untouched.
+            </p>
+          </div>
+          <div class="step">
+            <span class="step-num">3</span>
+            <h3>Mid-training, then post-training</h3>
+            <p>
+              During mid-training, the VLA with ExStereo train on large-scale stereo data with the standard action loss
+              plus a masked-autoencoding (MAE) loss on the multi-view patches. During post-training, the stereo module
+              is
+              frozen, the MAE decoder is dropped, and the policy is fine-tuned with LoRA on a small set of task
+              demos.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="split wide">
+        <figure class="media">
+          <div class="media-frame white">
+            <img src="assets/img/transparent.jpg"
+              alt="Transparent glass bottles: an RGB image, a noisy RealSense depth point cloud with missing geometry, and a clean point cloud reconstructed from a ZED Mini stereo pair."
+              loading="lazy">
+          </div>
+        </figure>
+        <div>
+          <p class="eyebrow">Why stereo?</p>
+          <h3>Geometry where depth sensors fail</h3>
+          <p>
+            RGB-D sensors struggle with transparent and reflective objects. On these glass bottles, a RealSense point
+            cloud (bottom left) is noisy and full of holes. A ZED Mini stereo pair processed with Fast-FoundationStereo
+            (bottom right) recovers clean, consistent geometry, with no extra depth hardware.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ simulation ============ -->
+    <section id="simulation">
+      <div class="prose">
+        <p class="eyebrow">Simulation</p>
+        <h2>Simulation: RoboTwin bimanual tasks</h2>
+        <p>
+          We fine-tune &pi;<sub>0.5</sub> and SmolVLA with ExStereo and compare them with their fine-tuned base
+          policies, with ACT (RGB), DP3 (point cloud) and StereoVLA (implicit stereo), and with ExStereo without
+          mid-training. Each method is evaluated on 25 unseen, domain-randomized episodes, and results are averaged
+          over three training seeds.
+        </p>
+      </div>
+
+      <figure class="media wide">
+        <div class="media-frame">
+          <img src="assets/img/sim_tasks.jpg" alt="Ten simulated RoboTwin tasks with domain randomization."
+            loading="lazy">
+        </div>
+        <figcaption>
+          <b>Top:</b> Lift Pot, Adjust Bottle, Grab Roller, Open Laptop, Beat Block Hammer.
+          <b>Bottom:</b> Click Alarmclock, Dump Bin Bigbin, Handover Mic, Press Stapler, Stamp Seal.
+        </figcaption>
+      </figure>
+
+      <div class="wide">
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">&pi;<sub>0.5</sub> avg. success</div>
+            <div class="stat-value">51.2 &rarr; <span class="up">76.4</span></div>
+            <div class="stat-detail">+25.2 points with ExStereo</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">SmolVLA avg. success</div>
+            <div class="stat-value">18.7 &rarr; <span class="up">42.0</span></div>
+            <div class="stat-detail">+23.3 points with ExStereo</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Largest single-task gain</div>
+            <div class="stat-value"><span class="up">+65.3</span></div>
+            <div class="stat-detail">SmolVLA on Handover Mic (0.0 &rarr; 65.3)</div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="tabs" id="task-tabs" role="tablist" aria-label="Select task"></div>
+          <div id="bars"></div>
+          <figcaption>Success rate (%) on the selected task. Blue bars are VLAs fine-tuned with ExStereo.</figcaption>
+        </div>
+
+        <h3 class="sub-head">&pi;<sub>0.5</sub>-ExStereo rollouts</h3>
+        <p class="sub-note">Evaluation episodes on unseen, domain-randomized scenes. Pick a task to watch its rollouts.
+        </p>
+        <div class="tabs" id="sim-tabs" role="tablist" aria-label="Select simulation task"></div>
+        <div class="clip-grid" id="sim-grid"></div>
+        <div class="more-row">
+          <button class="more-btn" type="button" id="sim-more">Show all 25 episodes</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ real world ============ -->
+    <section id="real-world">
+      <div class="prose">
+        <p class="eyebrow">Real World</p>
+        <h2>Bimanual AgileX PiPER with a ZED Mini</h2>
+        <p>
+          We test on three real-world tasks: a standard bimanual task (<strong>Stack Two Bowls</strong>), a task with
+          transparent objects (<strong>Lift Glass Bottles</strong>), and a task with an articulated object
+          (<strong>Close Fridge Door</strong>). Each method and task gets 20 trials.
+        </p>
+      </div>
+
+      <!-- <figure class="media wide">
+        <div class="media-frame white">
+          <img src="assets/img/real_rollouts.jpg"
+            alt="Successful π0.5-ExStereo rollouts on Close Fridge Door (left) and Lift Glass Bottles (right); each row shows the left stereo image and its Top, Front, Left and Right multi-view observations over time."
+            loading="lazy">
+        </div>
+        <figcaption>
+          <b>What the policy sees.</b> Successful &pi;<sub>0.5</sub>-ExStereo rollouts on <b>Close Fridge Door</b>
+          (left) and <b>Lift Glass Bottles</b> (right). Time runs top to bottom. Each row shows the left stereo image
+          next to its Top, Front, Left and Right views.
+        </figcaption>
+      </figure> -->
+
+      <div class="wide">
+        <div class="chart-card">
+          <div class="tabs" id="real-tabs" role="tablist" aria-label="Select real-world task"></div>
+          <div id="real-bars"></div>
+          <figcaption>Successful trials on the selected task (20 trials per task). Blue bars are &pi;<sub>0.5</sub>
+            fine-tuned with ExStereo. &ldquo;w/o MT&rdquo; denotes ExStereo without the mid-training stage.</figcaption>
+        </div>
+
+        <h3 class="sub-head">Real-world videos</h3>
+        <div id="rollouts"></div>
+      </div>
+    </section>
+
+    <!-- ============ citation ============ -->
+    <!-- <section id="citation" class="prose">
+      <p class="eyebrow">Citation</p>
+      <h2>BibTeX</h2>
+      <pre class="bib"><button class="copy-btn" type="button" id="copy-bib">Copy</button><code id="bibtex">@inproceedings{anonymous2026exstereo,
+  title     = {ExStereo: Lifting 2D Vision-Language-Action Models
+               to 3D with Explicit Stereo Representations},
+  author    = {Anonymous Authors},
+  booktitle = {Under Review},
+  year      = {2026}
+}</code></pre>
+    </section> -->
+
+  </main>
+
+  <footer class="site-footer">ExStereo &middot; Anonymous project page</footer>
+
+  <script src="main.js"></script>
 </body>
 
 </html>
