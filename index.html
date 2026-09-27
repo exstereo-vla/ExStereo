@@ -51,17 +51,22 @@
         Three-dimensional perception is critical for robotic manipulation, particularly for high-precision tasks, as
         recovering metric depth and precise 3D object positions from monocular RGB observations is inherently
         ill-posed. However, many Vision-Language-Action (VLA) models rely solely on RGB observations for perception.
+      </p>
+      <p>
         Leveraging recent advances in foundation models for stereo matching, we introduce <strong>ExStereo</strong>, a
         stereo module that augments pre-trained 2D VLAs with 3D perception. ExStereo reconstructs scene geometry from
-        stereo image pairs and renders multi-view observations as an explicit stereo representation for stereo feature
-        extraction. The action tokens from the action expert selectively attend to the resulting stereo tokens through
-        our proposed action-stereo cross-attention mechanism, enabling the policy to generate robot actions conditioned
-        on 3D scene information. To learn robust 3D representations, we introduce a mid-training stage before
-        task-specific post-training, using a self-supervised learning objective on large-scale stereo data. We validate
-        our approach by fine-tuning two publicly available VLAs, &pi;<sub>0.5</sub> and SmolVLA, and evaluate them in
-        simulation and on a real-world bimanual PiPER platform. Across both settings, VLAs fine-tuned with ExStereo
-        consistently outperform baselines, demonstrating the effectiveness of stereo perception for robotic
-        manipulation.
+        stereo image pairs and renders multi-view observations as an <strong>explicit stereo representation</strong>
+        for stereo feature extraction. The action tokens from the action expert selectively attend to the resulting
+        stereo tokens through our proposed <strong>action-stereo cross-attention</strong> mechanism, enabling the policy
+        to generate robot actions conditioned on 3D scene information. To learn robust 3D representations, we introduce
+        a <strong>mid-training</strong> stage before task-specific post-training, using a self-supervised learning
+        objective on large-scale stereo data.
+      </p>
+      <p>
+        We validate our approach by fine-tuning two publicly available VLAs, &pi;<sub>0.5</sub> and SmolVLA, and
+        evaluate them in simulation and on a real-world bimanual PiPER platform. Across both settings, VLAs fine-tuned
+        with ExStereo consistently outperform baselines, demonstrating the effectiveness of stereo perception for
+        robotic manipulation.
       </p>
       <figure class="media">
         <div class="media-frame white">
